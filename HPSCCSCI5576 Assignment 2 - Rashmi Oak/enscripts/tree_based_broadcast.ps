@@ -1,0 +1,3090 @@
+%!PS-Adobe-3.0
+%%BoundingBox: 24 24 571 818
+%%Title: Enscript Output
+%%For: System Administrator
+%%Creator: GNU Enscript 1.6.6
+%%CreationDate: Thu Sep 17 16:08:07 2015
+%%Orientation: Landscape
+%%Pages: (atend)
+%%DocumentMedia: A4 595 842 0 () ()
+%%DocumentNeededResources: (atend)
+%%EndComments
+%%BeginProlog
+%%BeginResource: procset Enscript-Prolog 1.6 6
+%
+% Procedures.
+%
+
+/_S {	% save current state
+  /_s save def
+} def
+/_R {	% restore from saved state
+  _s restore
+} def
+
+/S {	% showpage protecting gstate
+  gsave
+  showpage
+  grestore
+} bind def
+
+/MF {	% fontname newfontname -> -	make a new encoded font
+  /newfontname exch def
+  /fontname exch def
+
+  /fontdict fontname findfont def
+  /newfont fontdict maxlength dict def
+
+  fontdict {
+    exch
+    dup /FID eq {
+      % skip FID pair
+      pop pop
+    } {
+      % copy to the new font dictionary
+      exch newfont 3 1 roll put
+    } ifelse
+  } forall
+
+  newfont /FontName newfontname put
+
+  % insert only valid encoding vectors
+  encoding_vector length 256 eq {
+    newfont /Encoding encoding_vector put
+  } if
+
+  newfontname newfont definefont pop
+} def
+
+/MF_PS { % fontname newfontname -> -	make a new font preserving its enc
+  /newfontname exch def
+  /fontname exch def
+
+  /fontdict fontname findfont def
+  /newfont fontdict maxlength dict def
+
+  fontdict {
+    exch
+    dup /FID eq {
+      % skip FID pair
+      pop pop
+    } {
+      % copy to the new font dictionary
+      exch newfont 3 1 roll put
+    } ifelse
+  } forall
+
+  newfont /FontName newfontname put
+
+  newfontname newfont definefont pop
+} def
+
+/SF { % fontname width height -> -	set a new font
+  /height exch def
+  /width exch def
+
+  findfont
+  [width 0 0 height 0 0] makefont setfont
+} def
+
+/SUF { % fontname width height -> -	set a new user font
+  /height exch def
+  /width exch def
+
+  /F-gs-user-font MF
+  /F-gs-user-font width height SF
+} def
+
+/SUF_PS { % fontname width height -> -	set a new user font preserving its enc
+  /height exch def
+  /width exch def
+
+  /F-gs-user-font MF_PS
+  /F-gs-user-font width height SF
+} def
+
+/M {moveto} bind def
+/s {show} bind def
+
+/Box {	% x y w h -> -			define box path
+  /d_h exch def /d_w exch def /d_y exch def /d_x exch def
+  d_x d_y  moveto
+  d_w 0 rlineto
+  0 d_h rlineto
+  d_w neg 0 rlineto
+  closepath
+} def
+
+/bgs {	% x y height blskip gray str -> -	show string with bg color
+  /str exch def
+  /gray exch def
+  /blskip exch def
+  /height exch def
+  /y exch def
+  /x exch def
+
+  gsave
+    x y blskip sub str stringwidth pop height Box
+    gray setgray
+    fill
+  grestore
+  x y M str s
+} def
+
+/bgcs { % x y height blskip red green blue str -> -  show string with bg color
+  /str exch def
+  /blue exch def
+  /green exch def
+  /red exch def
+  /blskip exch def
+  /height exch def
+  /y exch def
+  /x exch def
+
+  gsave
+    x y blskip sub str stringwidth pop height Box
+    red green blue setrgbcolor
+    fill
+  grestore
+  x y M str s
+} def
+
+% Highlight bars.
+/highlight_bars {	% nlines lineheight output_y_margin gray -> -
+  gsave
+    setgray
+    /ymarg exch def
+    /lineheight exch def
+    /nlines exch def
+
+    % This 2 is just a magic number to sync highlight lines to text.
+    0 d_header_y ymarg sub 2 sub translate
+
+    /cw d_output_w cols div def
+    /nrows d_output_h ymarg 2 mul sub lineheight div cvi def
+
+    % for each column
+    0 1 cols 1 sub {
+      cw mul /xp exch def
+
+      % for each rows
+      0 1 nrows 1 sub {
+        /rn exch def
+        rn lineheight mul neg /yp exch def
+        rn nlines idiv 2 mod 0 eq {
+	  % Draw highlight bar.  4 is just a magic indentation.
+	  xp 4 add yp cw 8 sub lineheight neg Box fill
+	} if
+      } for
+    } for
+
+  grestore
+} def
+
+% Line highlight bar.
+/line_highlight {	% x y width height gray -> -
+  gsave
+    /gray exch def
+    Box gray setgray fill
+  grestore
+} def
+
+% Column separator lines.
+/column_lines {
+  gsave
+    .1 setlinewidth
+    0 d_footer_h translate
+    /cw d_output_w cols div def
+    1 1 cols 1 sub {
+      cw mul 0 moveto
+      0 d_output_h rlineto stroke
+    } for
+  grestore
+} def
+
+% Column borders.
+/column_borders {
+  gsave
+    .1 setlinewidth
+    0 d_footer_h moveto
+    0 d_output_h rlineto
+    d_output_w 0 rlineto
+    0 d_output_h neg rlineto
+    closepath stroke
+  grestore
+} def
+
+% Do the actual underlay drawing
+/draw_underlay {
+  ul_style 0 eq {
+    ul_str true charpath stroke
+  } {
+    ul_str show
+  } ifelse
+} def
+
+% Underlay
+/underlay {	% - -> -
+  gsave
+    0 d_page_h translate
+    d_page_h neg d_page_w atan rotate
+
+    ul_gray setgray
+    ul_font setfont
+    /dw d_page_h dup mul d_page_w dup mul add sqrt def
+    ul_str stringwidth pop dw exch sub 2 div ul_h_ptsize -2 div moveto
+    draw_underlay
+  grestore
+} def
+
+/user_underlay {	% - -> -
+  gsave
+    ul_x ul_y translate
+    ul_angle rotate
+    ul_gray setgray
+    ul_font setfont
+    0 0 ul_h_ptsize 2 div sub moveto
+    draw_underlay
+  grestore
+} def
+
+% Page prefeed
+/page_prefeed {		% bool -> -
+  statusdict /prefeed known {
+    statusdict exch /prefeed exch put
+  } {
+    pop
+  } ifelse
+} def
+
+% Wrapped line markers
+/wrapped_line_mark {	% x y charwith charheight type -> -
+  /type exch def
+  /h exch def
+  /w exch def
+  /y exch def
+  /x exch def
+
+  type 2 eq {
+    % Black boxes (like TeX does)
+    gsave
+      0 setlinewidth
+      x w 4 div add y M
+      0 h rlineto w 2 div 0 rlineto 0 h neg rlineto
+      closepath fill
+    grestore
+  } {
+    type 3 eq {
+      % Small arrows
+      gsave
+        .2 setlinewidth
+        x w 2 div add y h 2 div add M
+        w 4 div 0 rlineto
+        x w 4 div add y lineto stroke
+
+        x w 4 div add w 8 div add y h 4 div add M
+        x w 4 div add y lineto
+	w 4 div h 8 div rlineto stroke
+      grestore
+    } {
+      % do nothing
+    } ifelse
+  } ifelse
+} def
+
+% EPSF import.
+
+/BeginEPSF {
+  /b4_Inc_state save def    		% Save state for cleanup
+  /dict_count countdictstack def	% Count objects on dict stack
+  /op_count count 1 sub def		% Count objects on operand stack
+  userdict begin
+  /showpage { } def
+  0 setgray 0 setlinecap
+  1 setlinewidth 0 setlinejoin
+  10 setmiterlimit [ ] 0 setdash newpath
+  /languagelevel where {
+    pop languagelevel
+    1 ne {
+      false setstrokeadjust false setoverprint
+    } if
+  } if
+} bind def
+
+/EndEPSF {
+  count op_count sub { pos } repeat	% Clean up stacks
+  countdictstack dict_count sub { end } repeat
+  b4_Inc_state restore
+} bind def
+
+% Check PostScript language level.
+/languagelevel where {
+  pop /gs_languagelevel languagelevel def
+} {
+  /gs_languagelevel 1 def
+} ifelse
+%%EndResource
+%%BeginResource: procset Enscript-Encoding-88591 1.6 6
+/encoding_vector [
+/.notdef      	/.notdef      	/.notdef      	/.notdef      	
+/.notdef      	/.notdef      	/.notdef      	/.notdef      	
+/.notdef      	/.notdef      	/.notdef      	/.notdef      	
+/.notdef      	/.notdef      	/.notdef      	/.notdef      	
+/.notdef      	/.notdef      	/.notdef      	/.notdef      	
+/.notdef      	/.notdef      	/.notdef      	/.notdef      	
+/.notdef      	/.notdef      	/.notdef      	/.notdef      	
+/.notdef      	/.notdef      	/.notdef      	/.notdef      	
+/space        	/exclam       	/quotedbl     	/numbersign   	
+/dollar       	/percent      	/ampersand    	/quoteright   	
+/parenleft    	/parenright   	/asterisk     	/plus         	
+/comma        	/hyphen       	/period       	/slash        	
+/zero         	/one          	/two          	/three        	
+/four         	/five         	/six          	/seven        	
+/eight        	/nine         	/colon        	/semicolon    	
+/less         	/equal        	/greater      	/question     	
+/at           	/A            	/B            	/C            	
+/D            	/E            	/F            	/G            	
+/H            	/I            	/J            	/K            	
+/L            	/M            	/N            	/O            	
+/P            	/Q            	/R            	/S            	
+/T            	/U            	/V            	/W            	
+/X            	/Y            	/Z            	/bracketleft  	
+/backslash    	/bracketright 	/asciicircum  	/underscore   	
+/quoteleft    	/a            	/b            	/c            	
+/d            	/e            	/f            	/g            	
+/h            	/i            	/j            	/k            	
+/l            	/m            	/n            	/o            	
+/p            	/q            	/r            	/s            	
+/t            	/u            	/v            	/w            	
+/x            	/y            	/z            	/braceleft    	
+/bar          	/braceright   	/tilde        	/.notdef      	
+/.notdef      	/.notdef      	/.notdef      	/.notdef      	
+/.notdef      	/.notdef      	/.notdef      	/.notdef      	
+/.notdef      	/.notdef      	/.notdef      	/.notdef      	
+/.notdef      	/.notdef      	/.notdef      	/.notdef      	
+/.notdef      	/.notdef      	/.notdef      	/.notdef      	
+/.notdef      	/.notdef      	/.notdef      	/.notdef      	
+/.notdef      	/.notdef      	/.notdef      	/.notdef      	
+/.notdef      	/.notdef      	/.notdef      	/.notdef      	
+/space        	/exclamdown   	/cent         	/sterling     	
+/currency     	/yen          	/brokenbar    	/section      	
+/dieresis     	/copyright    	/ordfeminine  	/guillemotleft	
+/logicalnot   	/hyphen       	/registered   	/macron       	
+/degree       	/plusminus    	/twosuperior  	/threesuperior	
+/acute        	/mu           	/paragraph    	/bullet       	
+/cedilla      	/onesuperior  	/ordmasculine 	/guillemotright	
+/onequarter   	/onehalf      	/threequarters	/questiondown 	
+/Agrave       	/Aacute       	/Acircumflex  	/Atilde       	
+/Adieresis    	/Aring        	/AE           	/Ccedilla     	
+/Egrave       	/Eacute       	/Ecircumflex  	/Edieresis    	
+/Igrave       	/Iacute       	/Icircumflex  	/Idieresis    	
+/Eth          	/Ntilde       	/Ograve       	/Oacute       	
+/Ocircumflex  	/Otilde       	/Odieresis    	/multiply     	
+/Oslash       	/Ugrave       	/Uacute       	/Ucircumflex  	
+/Udieresis    	/Yacute       	/Thorn        	/germandbls   	
+/agrave       	/aacute       	/acircumflex  	/atilde       	
+/adieresis    	/aring        	/ae           	/ccedilla     	
+/egrave       	/eacute       	/ecircumflex  	/edieresis    	
+/igrave       	/iacute       	/icircumflex  	/idieresis    	
+/eth          	/ntilde       	/ograve       	/oacute       	
+/ocircumflex  	/otilde       	/odieresis    	/divide       	
+/oslash       	/ugrave       	/uacute       	/ucircumflex  	
+/udieresis    	/yacute       	/thorn        	/ydieresis    	
+] def
+%%EndResource
+%%EndProlog
+%%BeginSetup
+%%IncludeResource: font Courier-Bold
+%%IncludeResource: font Courier
+/HFpt_w 10 def
+/HFpt_h 10 def
+/Courier-Bold /HF-gs-font MF
+/HF /HF-gs-font findfont [HFpt_w 0 0 HFpt_h 0 0] makefont def
+/Courier /F-gs-font MF
+/F-gs-font 7 7 SF
+/#copies 1 def
+% Pagedevice definitions:
+gs_languagelevel 1 gt {
+  <<
+    /PageSize [595 842] 
+  >> setpagedevice
+} if
+%%BeginResource: procset Enscript-Header-enscript 1.6 6
+%%IncludeResource: font Times-Bold
+%%IncludeResource: font Times-Roman
+
+% Fonts.
+/Times-Bold /HeaderFont-Bold MF
+/HeaderDateF /HeaderFont-Bold findfont 12 scalefont def
+
+/Times-Roman /HeaderFont-Times MF
+/HeaderHDRF /HeaderFont-Times findfont 14 scalefont def
+
+/HeaderPageNumF /Helvetica-Bold findfont 28.8 scalefont def
+
+/do_header {	% print enscript header
+  gsave
+    d_header_x d_header_y translate
+
+    % light bar
+    0 0 d_header_w d_header_h 2 div Box
+    .95 setgray fill
+
+    % dark gray boxes
+    /dbw d_header_h 2 mul def	% dark box width
+    /dbc .7 def			% dark box color
+
+    % left dark box.
+    0 0 dbw d_header_h Box
+    dbc setgray fill
+
+    0 setgray 
+    HeaderDateF setfont
+    moddatestr dup stringwidth pop dbw exch sub 2 div 
+    d_header_h 2 div 2 add moveto show
+    modtimestr dup stringwidth pop dbw exch sub 2 div 
+    d_header_h 5 div moveto show
+
+    % right dark box
+    d_header_w dbw sub 0 dbw d_header_h Box
+    dbc setgray fill
+
+    HeaderPageNumF setfont
+    1 setgray
+    pagenumstr dup
+    stringwidth pop dbw exch sub 2 div d_header_w dbw sub add
+    d_header_h .2 mul moveto show
+
+    % filename
+    0 setgray 
+    HeaderHDRF setfont
+    d_header_w fname stringwidth pop sub 2 div d_header_h 8 div moveto
+    fname show
+
+    % user supplied header string.
+    user_header_p {
+      /h d_header_h 8 div 5 mul def
+
+      % Implement strict enscript compatibility.
+      user_header_center_str () eq user_header_right_str () eq and {
+        d_header_w user_header_left_str stringwidth pop sub 2 div 
+        h moveto user_header_left_str show
+      } {
+        dbw 5 add h moveto user_header_left_str show
+
+        d_header_w user_header_center_str stringwidth pop sub 2 div 
+        h moveto user_header_center_str show
+
+	d_header_w dbw sub 5 sub user_header_right_str stringwidth pop
+	sub h moveto user_header_right_str show
+      } ifelse
+    } if
+
+  grestore
+} def
+%%EndResource
+/d_page_w 794 def
+/d_page_h 547 def
+/d_header_x 0 def
+/d_header_y 511 def
+/d_header_w 794 def
+/d_header_h 36 def
+/d_footer_x 0 def
+/d_footer_y 0 def
+/d_footer_w 794 def
+/d_footer_h 0 def
+/d_output_w 794 def
+/d_output_h 511 def
+/cols 2 def
+%%EndSetup
+%%Page: (1) 1
+%%BeginPageSetup
+_S
+90 rotate
+24 -571 translate
+/pagenum 1 def
+/fname (tree_based_broadcast.c) def
+/fdir (.) def
+/ftail (tree_based_broadcast.c) def
+% User defined strings:
+/pagenumstr (1) def
+/moddatestr (09/17/15) def
+/modtimestr (00:43:21) def
+/user_header_p false def
+/user_footer_p false def
+%%EndPageSetup
+column_lines
+do_header
+/Courier-Oblique 7 7 SUF
+5 501 M
+(/* tree based broadcast */) s
+/F-gs-font 7 7 SF
+/Courier-Oblique 7 7 SUF
+5 493 M
+(/* Rashmi Oak */) s
+/F-gs-font 7 7 SF
+5 485 M
+(#) s
+/Courier-Bold 7 7 SUF
+9.2 485 M
+(include) s
+/F-gs-font 7 7 SF
+38.6 485 M
+( ) s
+/Courier-Bold 7 7 SUF
+42.8 485 M
+(<stdio.h>) s
+/F-gs-font 7 7 SF
+5 477 M
+(#) s
+/Courier-Bold 7 7 SUF
+9.2 477 M
+(include) s
+/F-gs-font 7 7 SF
+38.6 477 M
+( ) s
+/Courier-Bold 7 7 SUF
+42.8 477 M
+("mpi.h") s
+/F-gs-font 7 7 SF
+5 469 M
+(#) s
+/Courier-Bold 7 7 SUF
+9.2 469 M
+(include) s
+/F-gs-font 7 7 SF
+38.6 469 M
+( ) s
+/Courier-Bold 7 7 SUF
+42.8 469 M
+(<stdlib.h>) s
+/F-gs-font 7 7 SF
+5 461 M
+(#) s
+/Courier-Bold 7 7 SUF
+9.2 461 M
+(include) s
+/F-gs-font 7 7 SF
+38.6 461 M
+( ) s
+/Courier-Bold 7 7 SUF
+42.8 461 M
+(<math.h>) s
+/F-gs-font 7 7 SF
+/Courier-Bold 7 7 SUF
+5 445 M
+(int) s
+/F-gs-font 7 7 SF
+17.6 445 M
+( ) s
+/Courier-Bold 7 7 SUF
+21.8 445 M
+(main) s
+/F-gs-font 7 7 SF
+38.6 445 M
+(\() s
+/Courier-Bold 7 7 SUF
+42.8 445 M
+(int) s
+/F-gs-font 7 7 SF
+55.4 445 M
+( argc, ) s
+/Courier-Bold 7 7 SUF
+84.8 445 M
+(char) s
+/F-gs-font 7 7 SF
+101.6 445 M
+(** argv\) {) s
+5 437 M
+(    ) s
+/Courier-Bold 7 7 SUF
+21.8 437 M
+(int) s
+/F-gs-font 7 7 SF
+34.4 437 M
+(         my_rank;   ) s
+/Courier-Oblique 7 7 SUF
+118.4 437 M
+(/* My process rank           */) s
+/F-gs-font 7 7 SF
+5 429 M
+(    ) s
+/Courier-Bold 7 7 SUF
+21.8 429 M
+(int) s
+/F-gs-font 7 7 SF
+34.4 429 M
+(         p;         ) s
+/Courier-Oblique 7 7 SUF
+118.4 429 M
+(/* The number of processes   */) s
+/F-gs-font 7 7 SF
+5 421 M
+(    ) s
+/Courier-Bold 7 7 SUF
+21.8 421 M
+(float) s
+/F-gs-font 7 7 SF
+42.8 421 M
+(       a;         ) s
+/Courier-Oblique 7 7 SUF
+118.4 421 M
+(/* Left endpoint             */) s
+/F-gs-font 7 7 SF
+5 413 M
+(    ) s
+/Courier-Bold 7 7 SUF
+21.8 413 M
+(float) s
+/F-gs-font 7 7 SF
+42.8 413 M
+(       b;         ) s
+/Courier-Oblique 7 7 SUF
+118.4 413 M
+(/* Right endpoint            */) s
+/F-gs-font 7 7 SF
+5 405 M
+(    ) s
+/Courier-Bold 7 7 SUF
+21.8 405 M
+(int) s
+/F-gs-font 7 7 SF
+34.4 405 M
+(         n;         ) s
+/Courier-Oblique 7 7 SUF
+118.4 405 M
+(/* Number of trapezoids      */) s
+/F-gs-font 7 7 SF
+5 397 M
+(    ) s
+/Courier-Bold 7 7 SUF
+21.8 397 M
+(float) s
+/F-gs-font 7 7 SF
+42.8 397 M
+(       h;         ) s
+/Courier-Oblique 7 7 SUF
+118.4 397 M
+(/* Trapezoid base length     */) s
+/F-gs-font 7 7 SF
+5 389 M
+(    ) s
+/Courier-Bold 7 7 SUF
+21.8 389 M
+(float) s
+/F-gs-font 7 7 SF
+42.8 389 M
+(       local_a;   ) s
+/Courier-Oblique 7 7 SUF
+118.4 389 M
+(/* Left endpoint my process  */) s
+/F-gs-font 7 7 SF
+5 381 M
+(    ) s
+/Courier-Bold 7 7 SUF
+21.8 381 M
+(float) s
+/F-gs-font 7 7 SF
+42.8 381 M
+(       local_b;   ) s
+/Courier-Oblique 7 7 SUF
+118.4 381 M
+(/* Right endpoint my process */) s
+/F-gs-font 7 7 SF
+5 373 M
+(    ) s
+/Courier-Bold 7 7 SUF
+21.8 373 M
+(int) s
+/F-gs-font 7 7 SF
+34.4 373 M
+(         local_n;   ) s
+/Courier-Oblique 7 7 SUF
+118.4 373 M
+(/* Number of trapezoids for  */) s
+/F-gs-font 7 7 SF
+5 365 M
+(                           ) s
+/Courier-Oblique 7 7 SUF
+118.4 365 M
+(/* my calculation            */) s
+/F-gs-font 7 7 SF
+5 357 M
+(    ) s
+/Courier-Bold 7 7 SUF
+21.8 357 M
+(float) s
+/F-gs-font 7 7 SF
+42.8 357 M
+(       integral;  ) s
+/Courier-Oblique 7 7 SUF
+118.4 357 M
+(/* Integral over my interval */) s
+/F-gs-font 7 7 SF
+5 349 M
+(    ) s
+/Courier-Bold 7 7 SUF
+21.8 349 M
+(float) s
+/F-gs-font 7 7 SF
+42.8 349 M
+(       total;     ) s
+/Courier-Oblique 7 7 SUF
+118.4 349 M
+(/* Total integral            */) s
+/F-gs-font 7 7 SF
+5 341 M
+(    ) s
+/Courier-Bold 7 7 SUF
+21.8 341 M
+(int) s
+/F-gs-font 7 7 SF
+34.4 341 M
+(         source;    ) s
+/Courier-Oblique 7 7 SUF
+118.4 341 M
+(/* Process sending integral  */) s
+/F-gs-font 7 7 SF
+5 333 M
+(    ) s
+/Courier-Bold 7 7 SUF
+21.8 333 M
+(int) s
+/F-gs-font 7 7 SF
+34.4 333 M
+(         dest = 0;   ) s
+/Courier-Oblique 7 7 SUF
+122.6 333 M
+(/* All messages go to 0      */) s
+/F-gs-font 7 7 SF
+5 325 M
+(    ) s
+/Courier-Bold 7 7 SUF
+21.8 325 M
+(int) s
+/F-gs-font 7 7 SF
+34.4 325 M
+(         tag = 0;) s
+5 317 M
+(    MPI_Status  status;) s
+5 309 M
+(    ) s
+/Courier-Bold 7 7 SUF
+21.8 309 M
+(double) s
+/F-gs-font 7 7 SF
+47 309 M
+( start,finish,elapsed_time,local_elapsed;) s
+5 285 M
+(    ) s
+/Courier-Bold 7 7 SUF
+21.8 285 M
+(void) s
+/F-gs-font 7 7 SF
+38.6 285 M
+( Get_data1\() s
+/Courier-Bold 7 7 SUF
+84.8 285 M
+(float) s
+/F-gs-font 7 7 SF
+105.8 285 M
+(* a_ptr, ) s
+/Courier-Bold 7 7 SUF
+143.6 285 M
+(float) s
+/F-gs-font 7 7 SF
+164.6 285 M
+(* b_ptr, ) s
+/Courier-Bold 7 7 SUF
+202.4 285 M
+(int) s
+/F-gs-font 7 7 SF
+215 285 M
+(* n_ptr, ) s
+/Courier-Bold 7 7 SUF
+252.8 285 M
+(int) s
+/F-gs-font 7 7 SF
+265.4 285 M
+( my_rank, ) s
+5 277 M
+(              ) s
+/Courier-Bold 7 7 SUF
+63.8 277 M
+(int) s
+/F-gs-font 7 7 SF
+76.4 277 M
+( p\);) s
+5 269 M
+(    ) s
+/Courier-Bold 7 7 SUF
+21.8 269 M
+(void) s
+/F-gs-font 7 7 SF
+38.6 269 M
+( Get_data2\() s
+/Courier-Bold 7 7 SUF
+84.8 269 M
+(float) s
+/F-gs-font 7 7 SF
+105.8 269 M
+(* a_ptr, ) s
+/Courier-Bold 7 7 SUF
+143.6 269 M
+(float) s
+/F-gs-font 7 7 SF
+164.6 269 M
+(* b_ptr, ) s
+/Courier-Bold 7 7 SUF
+202.4 269 M
+(int) s
+/F-gs-font 7 7 SF
+215 269 M
+(* n_ptr, ) s
+/Courier-Bold 7 7 SUF
+252.8 269 M
+(int) s
+/F-gs-font 7 7 SF
+265.4 269 M
+( my_rank, ) s
+5 261 M
+(              ) s
+/Courier-Bold 7 7 SUF
+63.8 261 M
+(int) s
+/F-gs-font 7 7 SF
+76.4 261 M
+( p\);) s
+5 253 M
+(    ) s
+/Courier-Bold 7 7 SUF
+21.8 253 M
+(float) s
+/F-gs-font 7 7 SF
+42.8 253 M
+( Trap\() s
+/Courier-Bold 7 7 SUF
+68 253 M
+(float) s
+/F-gs-font 7 7 SF
+89 253 M
+( local_a, ) s
+/Courier-Bold 7 7 SUF
+131 253 M
+(float) s
+/F-gs-font 7 7 SF
+152 253 M
+( local_b, ) s
+/Courier-Bold 7 7 SUF
+194 253 M
+(int) s
+/F-gs-font 7 7 SF
+206.6 253 M
+( local_n,) s
+5 245 M
+(              ) s
+/Courier-Bold 7 7 SUF
+63.8 245 M
+(float) s
+/F-gs-font 7 7 SF
+84.8 245 M
+( h\);    ) s
+/Courier-Oblique 7 7 SUF
+118.4 245 M
+(/* Calculate local integral  */) s
+/F-gs-font 7 7 SF
+5 229 M
+(    ) s
+/Courier-Oblique 7 7 SUF
+21.8 229 M
+(/* Let the system do what it needs to start up MPI */) s
+/F-gs-font 7 7 SF
+5 221 M
+(    MPI_Init\(&argc, &argv\);) s
+5 205 M
+(    ) s
+/Courier-Oblique 7 7 SUF
+21.8 205 M
+(/* Get my process rank */) s
+/F-gs-font 7 7 SF
+5 197 M
+(    MPI_Comm_rank\(MPI_COMM_WORLD, &my_rank\);) s
+5 181 M
+(    ) s
+/Courier-Oblique 7 7 SUF
+21.8 181 M
+(/* Find out how many processes are being used */) s
+/F-gs-font 7 7 SF
+5 173 M
+(    MPI_Comm_size\(MPI_COMM_WORLD, &p\);) s
+5 165 M
+(    MPI_Barrier\(MPI_COMM_WORLD\); ) s
+5 157 M
+(    start = MPI_Wtime\(\);) s
+5 149 M
+(    ) s
+/Courier-Bold 7 7 SUF
+21.8 149 M
+(int) s
+/F-gs-font 7 7 SF
+34.4 149 M
+( dest1 =p-1;) s
+5 133 M
+(    ) s
+/Courier-Bold 7 7 SUF
+21.8 133 M
+(if) s
+/F-gs-font 7 7 SF
+30.2 133 M
+(\(atoi\(argv[1]\) == 0\){) s
+5 125 M
+(        printf\() s
+/Courier-Bold 7 7 SUF
+68 125 M
+("low to high rank ordering is chosen\\n") s
+/F-gs-font 7 7 SF
+231.8 125 M
+(\);) s
+5 117 M
+(        Get_data1\(&a, &b, &n, my_rank, p\);) s
+5 109 M
+(        h = \(b-a\)/n;    ) s
+/Courier-Oblique 7 7 SUF
+105.8 109 M
+(/* h is the same for all processes */) s
+/F-gs-font 7 7 SF
+5 101 M
+(    local_n = n/p;  ) s
+/Courier-Oblique 7 7 SUF
+89 101 M
+(/* So is the number of trapezoids */) s
+/F-gs-font 7 7 SF
+5 85 M
+(    ) s
+/Courier-Oblique 7 7 SUF
+21.8 85 M
+(/* Length of each process' interval of ) s
+5 77 M
+(     * integration = local_n*h.  So my interval) s
+5 69 M
+(     * starts at: */) s
+/F-gs-font 7 7 SF
+5 61 M
+(    local_a = a + my_rank*local_n*h;) s
+5 53 M
+(    local_b = local_a + local_n*h;) s
+5 45 M
+(    integral = Trap\(local_a, local_b, local_n, h\);) s
+5 29 M
+(    ) s
+/Courier-Oblique 7 7 SUF
+21.8 29 M
+(/* Add up the integrals calculated by each process */) s
+/F-gs-font 7 7 SF
+5 21 M
+(    ) s
+/Courier-Bold 7 7 SUF
+21.8 21 M
+(if) s
+/F-gs-font 7 7 SF
+30.2 21 M
+( \(my_rank == 0\) {) s
+5 13 M
+(        total = integral;) s
+5 5 M
+(        ) s
+/Courier-Bold 7 7 SUF
+38.6 5 M
+(for) s
+/F-gs-font 7 7 SF
+51.2 5 M
+( \(source = 1; source < p; source++\) {) s
+402 501 M
+(            MPI_Recv\(&integral, 1, MPI_FLOAT, source, tag, ) s
+402 493 M
+(                MPI_COMM_WORLD, &status\);) s
+402 485 M
+(            total = total + integral;) s
+402 477 M
+(            printf\() s
+/Courier-Bold 7 7 SUF
+481.8 477 M
+("process 0 is receiving from : %d\\n") s
+/F-gs-font 7 7 SF
+633 477 M
+(,source\);) s
+402 469 M
+(        }) s
+402 461 M
+(    } ) s
+/Courier-Bold 7 7 SUF
+427.2 461 M
+(else) s
+/F-gs-font 7 7 SF
+444 461 M
+( {   ) s
+402 453 M
+(        MPI_Send\(&integral, 1, MPI_FLOAT, dest, ) s
+402 445 M
+(            tag, MPI_COMM_WORLD\);) s
+402 437 M
+(        printf\() s
+/Courier-Bold 7 7 SUF
+465 437 M
+("process %d is sending to : %d\\n") s
+/F-gs-font 7 7 SF
+603.6 437 M
+(,my_rank,dest\);) s
+402 421 M
+(    }) s
+402 405 M
+(    ) s
+/Courier-Oblique 7 7 SUF
+418.8 405 M
+(/* Print the result */) s
+/F-gs-font 7 7 SF
+402 397 M
+(    ) s
+/Courier-Bold 7 7 SUF
+418.8 397 M
+(if) s
+/F-gs-font 7 7 SF
+427.2 397 M
+( \(my_rank == 0\) {) s
+402 389 M
+(        printf\() s
+/Courier-Bold 7 7 SUF
+465 389 M
+("With n = %d trapezoids, our estimate\\n") s
+/F-gs-font 7 7 SF
+633 389 M
+(, n\);) s
+402 381 M
+(        printf\() s
+/Courier-Bold 7 7 SUF
+465 381 M
+("of the integral from %f to %f = %f\\n") s
+/F-gs-font 7 7 SF
+624.6 381 M
+(, a, b, total\); ) s
+402 373 M
+(    }) s
+402 365 M
+(   MPI_Barrier\(MPI_COMM_WORLD\); ) s
+402 357 M
+(    finish = MPI_Wtime\(\);) s
+402 341 M
+(    local_elapsed = finish - start;) s
+402 333 M
+(    ) s
+402 325 M
+(    MPI_Reduce\(&local_elapsed, &elapsed_time, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD\);) s
+402 317 M
+(    ) s
+/Courier-Bold 7 7 SUF
+418.8 317 M
+(if) s
+/F-gs-font 7 7 SF
+427.2 317 M
+(\(my_rank == 0\){) s
+402 309 M
+(    printf\() s
+/Courier-Bold 7 7 SUF
+448.2 309 M
+("execution time = %f\\n") s
+/F-gs-font 7 7 SF
+544.8 309 M
+(,elapsed_time \);) s
+402 301 M
+(    }) s
+402 293 M
+(    ) s
+/Courier-Oblique 7 7 SUF
+418.8 293 M
+(/* Shut down MPI */) s
+/F-gs-font 7 7 SF
+402 285 M
+(    MPI_Finalize\(\);) s
+402 269 M
+(    }) s
+402 261 M
+(    ) s
+/Courier-Bold 7 7 SUF
+418.8 261 M
+(if) s
+/F-gs-font 7 7 SF
+427.2 261 M
+(\(atoi\(argv[1]\) == 1\){) s
+402 253 M
+(        fflush\(stdin\);) s
+402 245 M
+(        printf\() s
+/Courier-Bold 7 7 SUF
+465 245 M
+("high to low ordering is chosen\\n") s
+/F-gs-font 7 7 SF
+607.8 245 M
+(\);) s
+402 237 M
+(        Get_data2\(&a, &b, &n, my_rank, p\);) s
+402 229 M
+(        h = \(b-a\)/n;    ) s
+/Courier-Oblique 7 7 SUF
+502.8 229 M
+(/* h is the same for all processes */) s
+/F-gs-font 7 7 SF
+402 221 M
+(    local_n = n/p;  ) s
+/Courier-Oblique 7 7 SUF
+486 221 M
+(/* So is the number of trapezoids */) s
+/F-gs-font 7 7 SF
+402 213 M
+(    ) s
+/Courier-Oblique 7 7 SUF
+418.8 213 M
+(/* Length of each process' interval of ) s
+402 205 M
+(     * integration = local_n*h.  So my interval) s
+402 197 M
+(     * starts at: */) s
+/F-gs-font 7 7 SF
+402 189 M
+(    local_a = a + my_rank*local_n*h;) s
+402 181 M
+(    local_b = local_a + local_n*h;) s
+402 173 M
+(    integral = Trap\(local_a, local_b, local_n, h\);) s
+402 165 M
+(    ) s
+/Courier-Oblique 7 7 SUF
+418.8 165 M
+(/* Add up the integrals calculated by each process */) s
+/F-gs-font 7 7 SF
+402 157 M
+(    ) s
+/Courier-Bold 7 7 SUF
+418.8 157 M
+(if) s
+/F-gs-font 7 7 SF
+427.2 157 M
+( \(my_rank == p-1\) {) s
+402 149 M
+(        total = integral;) s
+402 141 M
+(        ) s
+/Courier-Bold 7 7 SUF
+435.6 141 M
+(for) s
+/F-gs-font 7 7 SF
+448.2 141 M
+( \(source = 0; source < p-1; source++\) {) s
+402 133 M
+(            MPI_Recv\(&integral, 1, MPI_FLOAT, source, tag, ) s
+402 125 M
+(                MPI_COMM_WORLD, &status\);) s
+402 117 M
+(            total = total + integral;) s
+402 109 M
+(            printf\() s
+/Courier-Bold 7 7 SUF
+481.8 109 M
+("process %d is receiving from : %d\\n") s
+/F-gs-font 7 7 SF
+637.2 109 M
+(,\(p-1\),source\);) s
+402 101 M
+(        }) s
+402 93 M
+(    } ) s
+/Courier-Bold 7 7 SUF
+427.2 93 M
+(else) s
+/F-gs-font 7 7 SF
+444 93 M
+( {   ) s
+402 85 M
+(        MPI_Send\(&integral, 1, MPI_FLOAT, p-1, ) s
+402 77 M
+(            tag, MPI_COMM_WORLD\);) s
+402 69 M
+(        printf\() s
+/Courier-Bold 7 7 SUF
+465 69 M
+("process %d is sending to : %d\\n") s
+/F-gs-font 7 7 SF
+603.6 69 M
+(,my_rank,p-1\);) s
+402 53 M
+(    }) s
+402 37 M
+(    ) s
+/Courier-Oblique 7 7 SUF
+418.8 37 M
+(/* Print the result */) s
+/F-gs-font 7 7 SF
+402 29 M
+(    ) s
+/Courier-Bold 7 7 SUF
+418.8 29 M
+(if) s
+/F-gs-font 7 7 SF
+427.2 29 M
+( \(my_rank == p-1\) {) s
+402 21 M
+(        printf\() s
+/Courier-Bold 7 7 SUF
+465 21 M
+("With n = %d trapezoids, our estimate\\n") s
+/F-gs-font 7 7 SF
+633 21 M
+(, ) s
+402 13 M
+(            n\);) s
+402 5 M
+(        printf\() s
+/Courier-Bold 7 7 SUF
+465 5 M
+("of the integral from %f to %f = %f\\n") s
+/F-gs-font 7 7 SF
+624.6 5 M
+(, ) s
+_R
+S
+%%Page: (2) 2
+%%BeginPageSetup
+_S
+90 rotate
+24 -571 translate
+/pagenum 2 def
+/fname (tree_based_broadcast.c) def
+/fdir (.) def
+/ftail (tree_based_broadcast.c) def
+% User defined strings:
+/pagenumstr (2) def
+/moddatestr (09/17/15) def
+/modtimestr (00:43:21) def
+/user_header_p false def
+/user_footer_p false def
+%%EndPageSetup
+column_lines
+do_header
+5 501 M
+(            a, b, total\); ) s
+5 493 M
+(    }) s
+5 485 M
+(    MPI_Barrier\(MPI_COMM_WORLD\); ) s
+5 477 M
+(    finish = MPI_Wtime\(\);) s
+5 461 M
+(    local_elapsed = finish - start;) s
+5 453 M
+(    ) s
+5 445 M
+(    MPI_Reduce\(&local_elapsed, &elapsed_time, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD\);) s
+5 437 M
+(    ) s
+/Courier-Bold 7 7 SUF
+21.8 437 M
+(if) s
+/F-gs-font 7 7 SF
+30.2 437 M
+(\(my_rank == 0\){) s
+5 429 M
+(    printf\() s
+/Courier-Bold 7 7 SUF
+51.2 429 M
+("execution time = %f\\n") s
+/F-gs-font 7 7 SF
+147.8 429 M
+(,elapsed_time \);) s
+5 421 M
+(    }) s
+5 413 M
+(    MPI_Finalize\(\);) s
+5 397 M
+(    }) s
+5 373 M
+(    ) s
+5 365 M
+(} ) s
+/Courier-Oblique 7 7 SUF
+13.4 365 M
+(/*  main  */) s
+/F-gs-font 7 7 SF
+/Courier-Bold 7 7 SUF
+5 333 M
+(int) s
+/F-gs-font 7 7 SF
+17.6 333 M
+( ) s
+/Courier-Bold 7 7 SUF
+21.8 333 M
+(Ceiling_log2) s
+/F-gs-font 7 7 SF
+72.2 333 M
+(\() s
+/Courier-Bold 7 7 SUF
+76.4 333 M
+(int) s
+/F-gs-font 7 7 SF
+89 333 M
+(  x  ) s
+/Courier-Oblique 7 7 SUF
+110 333 M
+(/* in */) s
+/F-gs-font 7 7 SF
+143.6 333 M
+(\) {) s
+5 325 M
+(    ) s
+5 317 M
+(    ) s
+/Courier-Bold 7 7 SUF
+21.8 317 M
+(unsigned) s
+/F-gs-font 7 7 SF
+55.4 317 M
+( temp = \() s
+/Courier-Bold 7 7 SUF
+93.2 317 M
+(unsigned) s
+/F-gs-font 7 7 SF
+126.8 317 M
+(\) x - 1;) s
+5 309 M
+(    ) s
+/Courier-Bold 7 7 SUF
+21.8 309 M
+(int) s
+/F-gs-font 7 7 SF
+34.4 309 M
+( result = 0;) s
+5 293 M
+(    ) s
+/Courier-Bold 7 7 SUF
+21.8 293 M
+(while) s
+/F-gs-font 7 7 SF
+42.8 293 M
+( \(temp != 0\) {) s
+5 285 M
+(         temp = temp >> 1;) s
+5 277 M
+(         result = result + 1 ;) s
+5 269 M
+(    }) s
+5 261 M
+(    ) s
+/Courier-Oblique 7 7 SUF
+21.8 261 M
+(//printf\("result = %d\\n",result\);) s
+/F-gs-font 7 7 SF
+5 253 M
+(    ) s
+/Courier-Bold 7 7 SUF
+21.8 253 M
+(return) s
+/F-gs-font 7 7 SF
+47 253 M
+( result;) s
+5 245 M
+(} ) s
+/Courier-Oblique 7 7 SUF
+13.4 245 M
+(/* Ceiling_log2 */) s
+/F-gs-font 7 7 SF
+/Courier-Oblique 7 7 SUF
+5 221 M
+(/********************************************************************/) s
+/F-gs-font 7 7 SF
+/Courier-Bold 7 7 SUF
+5 213 M
+(int) s
+/F-gs-font 7 7 SF
+17.6 213 M
+( ) s
+/Courier-Bold 7 7 SUF
+21.8 213 M
+(I_receive) s
+/F-gs-font 7 7 SF
+59.6 213 M
+(\() s
+5 205 M
+(        ) s
+/Courier-Bold 7 7 SUF
+38.6 205 M
+(int) s
+/F-gs-font 7 7 SF
+51.2 205 M
+(   stage       ) s
+/Courier-Oblique 7 7 SUF
+114.2 205 M
+(/* in  */) s
+/F-gs-font 7 7 SF
+152 205 M
+(,) s
+5 197 M
+(        ) s
+/Courier-Bold 7 7 SUF
+38.6 197 M
+(int) s
+/F-gs-font 7 7 SF
+51.2 197 M
+(   my_rank     ) s
+/Courier-Oblique 7 7 SUF
+114.2 197 M
+(/* in  */) s
+/F-gs-font 7 7 SF
+152 197 M
+(, ) s
+5 189 M
+(        ) s
+/Courier-Bold 7 7 SUF
+38.6 189 M
+(int) s
+/F-gs-font 7 7 SF
+51.2 189 M
+(   p,) s
+5 181 M
+(        ) s
+/Courier-Bold 7 7 SUF
+38.6 181 M
+(int) s
+/F-gs-font 7 7 SF
+51.2 181 M
+(*  source_ptr  ) s
+/Courier-Oblique 7 7 SUF
+114.2 181 M
+(/* out */) s
+/F-gs-font 7 7 SF
+152 181 M
+(\) {) s
+5 173 M
+(    ) s
+/Courier-Bold 7 7 SUF
+21.8 173 M
+(int) s
+/F-gs-font 7 7 SF
+34.4 173 M
+(   power_2_stage;) s
+5 157 M
+(    ) s
+/Courier-Oblique 7 7 SUF
+21.8 157 M
+(/* 2^stage = 1 << stage */) s
+/F-gs-font 7 7 SF
+5 149 M
+(    power_2_stage = 1 << stage;) s
+5 141 M
+(            printf\() s
+/Courier-Bold 7 7 SUF
+84.8 141 M
+("*******************inside I_receive ***************** rank is %d 2^stage) s
+5 133 M
+(: %d\\n") s
+/F-gs-font 7 7 SF
+34.4 133 M
+(,my_rank,power_2_stage\);) s
+5 117 M
+(    ) s
+/Courier-Bold 7 7 SUF
+21.8 117 M
+(if) s
+/F-gs-font 7 7 SF
+30.2 117 M
+( \(\(power_2_stage <= my_rank\) && ) s
+5 109 M
+(            \(my_rank < 2*power_2_stage\)\) {) s
+5 101 M
+(                printf\() s
+/Courier-Bold 7 7 SUF
+101.6 101 M
+("inside if condition of I_receive %d  stage = %d\\n") s
+/F-gs-font 7 7 SF
+315.8 101 M
+(, my_rank,stage \);) s
+5 85 M
+(        *source_ptr = my_rank - power_2_stage;) s
+5 77 M
+(                printf\() s
+/Courier-Bold 7 7 SUF
+101.6 77 M
+("receive : : : : : source pointer is %d and my_rank is %d\\n") s
+/F-gs-font 7 7 SF
+353.6 77 M
+(,*source_) s
+5 69 M
+(ptr,my_rank \);) s
+5 53 M
+(        ) s
+/Courier-Bold 7 7 SUF
+38.6 53 M
+(return) s
+/F-gs-font 7 7 SF
+63.8 53 M
+( 1;) s
+5 45 M
+(    } ) s
+/Courier-Bold 7 7 SUF
+30.2 45 M
+(else) s
+/F-gs-font 7 7 SF
+47 45 M
+( ) s
+/Courier-Bold 7 7 SUF
+51.2 45 M
+(return) s
+/F-gs-font 7 7 SF
+76.4 45 M
+( 0;) s
+5 37 M
+(} ) s
+/Courier-Oblique 7 7 SUF
+13.4 37 M
+(/* I_receive */) s
+/F-gs-font 7 7 SF
+/Courier-Bold 7 7 SUF
+5 29 M
+(int) s
+/F-gs-font 7 7 SF
+17.6 29 M
+( ) s
+/Courier-Bold 7 7 SUF
+21.8 29 M
+(I_receive1) s
+/F-gs-font 7 7 SF
+63.8 29 M
+(\() s
+5 21 M
+(        ) s
+/Courier-Bold 7 7 SUF
+38.6 21 M
+(int) s
+/F-gs-font 7 7 SF
+51.2 21 M
+(   stage       ) s
+/Courier-Oblique 7 7 SUF
+114.2 21 M
+(/* in  */) s
+/F-gs-font 7 7 SF
+152 21 M
+(,) s
+5 13 M
+(        ) s
+/Courier-Bold 7 7 SUF
+38.6 13 M
+(int) s
+/F-gs-font 7 7 SF
+51.2 13 M
+(   my_rank     ) s
+/Courier-Oblique 7 7 SUF
+114.2 13 M
+(/* in  */) s
+/F-gs-font 7 7 SF
+152 13 M
+(, ) s
+5 5 M
+(        ) s
+/Courier-Bold 7 7 SUF
+38.6 5 M
+(int) s
+/F-gs-font 7 7 SF
+51.2 5 M
+(   p,) s
+402 501 M
+(        ) s
+/Courier-Bold 7 7 SUF
+435.6 501 M
+(int) s
+/F-gs-font 7 7 SF
+448.2 501 M
+(*  source_ptr  ) s
+/Courier-Oblique 7 7 SUF
+511.2 501 M
+(/* out */) s
+/F-gs-font 7 7 SF
+549 501 M
+(\) {) s
+402 493 M
+(    ) s
+/Courier-Bold 7 7 SUF
+418.8 493 M
+(int) s
+/F-gs-font 7 7 SF
+431.4 493 M
+(   power_2_stage;) s
+402 477 M
+(    ) s
+/Courier-Oblique 7 7 SUF
+418.8 477 M
+(/* 2^stage = 1 << stage */) s
+/F-gs-font 7 7 SF
+402 469 M
+(    power_2_stage = 1 << stage;) s
+402 461 M
+(        printf\() s
+/Courier-Bold 7 7 SUF
+465 461 M
+("*******************inside I_receive1 ***************** rank is %d 2^stage: %) s
+402 453 M
+(d\\n") s
+/F-gs-font 7 7 SF
+418.8 453 M
+(,my_rank,power_2_stage\);) s
+402 445 M
+(    ) s
+/Courier-Bold 7 7 SUF
+418.8 445 M
+(if) s
+/F-gs-font 7 7 SF
+427.2 445 M
+( \(\(\(p-1\) - power_2_stage >= my_rank\) && \(my_rank > \(p-1\) - 2*power_2_stage\)\) {) s
+402 437 M
+(        printf\() s
+/Courier-Bold 7 7 SUF
+465 437 M
+("inside if condition of I_receive1  %d  stage = %d\\n") s
+/F-gs-font 7 7 SF
+687.6 437 M
+(, my_rank,stage \);) s
+402 429 M
+(        *source_ptr = my_rank + power_2_stage;) s
+402 421 M
+(        printf\() s
+/Courier-Bold 7 7 SUF
+465 421 M
+("source pointer is %d and my_rank is %d\\n") s
+/F-gs-font 7 7 SF
+641.4 421 M
+(,*source_ptr,my_rank \);) s
+402 405 M
+(        ) s
+/Courier-Bold 7 7 SUF
+435.6 405 M
+(return) s
+/F-gs-font 7 7 SF
+460.8 405 M
+( 1;) s
+402 397 M
+(    }) s
+402 381 M
+(    ) s
+/Courier-Bold 7 7 SUF
+418.8 381 M
+(else) s
+/F-gs-font 7 7 SF
+435.6 381 M
+( ) s
+/Courier-Bold 7 7 SUF
+439.8 381 M
+(return) s
+/F-gs-font 7 7 SF
+465 381 M
+( 0;) s
+402 373 M
+(} ) s
+/Courier-Oblique 7 7 SUF
+410.4 373 M
+(/* I_receive */) s
+/F-gs-font 7 7 SF
+/Courier-Oblique 7 7 SUF
+402 365 M
+(/********************************************************************/) s
+/F-gs-font 7 7 SF
+/Courier-Bold 7 7 SUF
+402 357 M
+(int) s
+/F-gs-font 7 7 SF
+414.6 357 M
+( ) s
+/Courier-Bold 7 7 SUF
+418.8 357 M
+(I_send) s
+/F-gs-font 7 7 SF
+444 357 M
+(\() s
+402 349 M
+(        ) s
+/Courier-Bold 7 7 SUF
+435.6 349 M
+(int) s
+/F-gs-font 7 7 SF
+448.2 349 M
+(   stage     ) s
+/Courier-Oblique 7 7 SUF
+502.8 349 M
+(/* in  */) s
+/F-gs-font 7 7 SF
+540.6 349 M
+(,) s
+402 341 M
+(        ) s
+/Courier-Bold 7 7 SUF
+435.6 341 M
+(int) s
+/F-gs-font 7 7 SF
+448.2 341 M
+(   my_rank   ) s
+/Courier-Oblique 7 7 SUF
+502.8 341 M
+(/* in  */) s
+/F-gs-font 7 7 SF
+540.6 341 M
+(,) s
+402 333 M
+(        ) s
+/Courier-Bold 7 7 SUF
+435.6 333 M
+(int) s
+/F-gs-font 7 7 SF
+448.2 333 M
+(   p         ) s
+/Courier-Oblique 7 7 SUF
+502.8 333 M
+(/* in  */) s
+/F-gs-font 7 7 SF
+540.6 333 M
+(, ) s
+402 325 M
+(        ) s
+/Courier-Bold 7 7 SUF
+435.6 325 M
+(int) s
+/F-gs-font 7 7 SF
+448.2 325 M
+(*  dest_ptr  ) s
+/Courier-Oblique 7 7 SUF
+502.8 325 M
+(/* out */) s
+/F-gs-font 7 7 SF
+540.6 325 M
+(\) {) s
+402 317 M
+(    ) s
+/Courier-Bold 7 7 SUF
+418.8 317 M
+(int) s
+/F-gs-font 7 7 SF
+431.4 317 M
+( power_2_stage;) s
+402 309 M
+(    printf\() s
+/Courier-Bold 7 7 SUF
+448.2 309 M
+("*******************inside I_send ******************** %d\\n") s
+/F-gs-font 7 7 SF
+700.2 309 M
+(, my_rank\);) s
+402 293 M
+(    ) s
+/Courier-Oblique 7 7 SUF
+418.8 293 M
+(/* 2^stage = 1 << stage */) s
+/F-gs-font 7 7 SF
+402 285 M
+(    power_2_stage = 1 << stage;  ) s
+402 277 M
+(    ) s
+/Courier-Bold 7 7 SUF
+418.8 277 M
+(if) s
+/F-gs-font 7 7 SF
+427.2 277 M
+( \(my_rank < power_2_stage \){) s
+402 269 M
+(        *dest_ptr = my_rank + power_2_stage;) s
+402 261 M
+(                printf\() s
+/Courier-Bold 7 7 SUF
+498.6 261 M
+("stage %d and my_rank %d and dest_ptr %d\\n") s
+/F-gs-font 7 7 SF
+679.2 261 M
+(,stage,my_rank,*dest_ptr\);) s
+402 245 M
+(        ) s
+/Courier-Bold 7 7 SUF
+435.6 245 M
+(if) s
+/F-gs-font 7 7 SF
+444 245 M
+( \(*dest_ptr >= p\) ) s
+/Courier-Bold 7 7 SUF
+519.6 245 M
+(return) s
+/F-gs-font 7 7 SF
+544.8 245 M
+( 0;) s
+402 229 M
+(        ) s
+/Courier-Bold 7 7 SUF
+435.6 229 M
+(else) s
+/F-gs-font 7 7 SF
+452.4 229 M
+( ) s
+/Courier-Bold 7 7 SUF
+456.6 229 M
+(return) s
+/F-gs-font 7 7 SF
+481.8 229 M
+( 1;) s
+402 221 M
+(    } ) s
+/Courier-Bold 7 7 SUF
+427.2 221 M
+(else) s
+/F-gs-font 7 7 SF
+444 221 M
+( ) s
+/Courier-Bold 7 7 SUF
+448.2 221 M
+(return) s
+/F-gs-font 7 7 SF
+473.4 221 M
+( 0;) s
+402 213 M
+(} ) s
+/Courier-Oblique 7 7 SUF
+410.4 213 M
+(/* I_send */) s
+/F-gs-font 7 7 SF
+460.8 213 M
+(            ) s
+/Courier-Oblique 7 7 SUF
+402 205 M
+(/********************************************************************/) s
+/F-gs-font 7 7 SF
+/Courier-Bold 7 7 SUF
+402 197 M
+(int) s
+/F-gs-font 7 7 SF
+414.6 197 M
+( ) s
+/Courier-Bold 7 7 SUF
+418.8 197 M
+(I_send1) s
+/F-gs-font 7 7 SF
+448.2 197 M
+(\() s
+402 189 M
+(        ) s
+/Courier-Bold 7 7 SUF
+435.6 189 M
+(int) s
+/F-gs-font 7 7 SF
+448.2 189 M
+(   stage     ) s
+/Courier-Oblique 7 7 SUF
+502.8 189 M
+(/* in  */) s
+/F-gs-font 7 7 SF
+540.6 189 M
+(,) s
+402 181 M
+(        ) s
+/Courier-Bold 7 7 SUF
+435.6 181 M
+(int) s
+/F-gs-font 7 7 SF
+448.2 181 M
+(   my_rank   ) s
+/Courier-Oblique 7 7 SUF
+502.8 181 M
+(/* in  */) s
+/F-gs-font 7 7 SF
+540.6 181 M
+(,) s
+402 173 M
+(        ) s
+/Courier-Bold 7 7 SUF
+435.6 173 M
+(int) s
+/F-gs-font 7 7 SF
+448.2 173 M
+(   p         ) s
+/Courier-Oblique 7 7 SUF
+502.8 173 M
+(/* in  */) s
+/F-gs-font 7 7 SF
+540.6 173 M
+(, ) s
+402 165 M
+(        ) s
+/Courier-Bold 7 7 SUF
+435.6 165 M
+(int) s
+/F-gs-font 7 7 SF
+448.2 165 M
+(*  dest_ptr  ) s
+/Courier-Oblique 7 7 SUF
+502.8 165 M
+(/* out */) s
+/F-gs-font 7 7 SF
+540.6 165 M
+(\) {) s
+402 157 M
+(    ) s
+/Courier-Bold 7 7 SUF
+418.8 157 M
+(int) s
+/F-gs-font 7 7 SF
+431.4 157 M
+( power_2_stage;) s
+402 149 M
+(    printf\() s
+/Courier-Bold 7 7 SUF
+448.2 149 M
+("*******************inside I_send1 ********************  %d\\n") s
+/F-gs-font 7 7 SF
+708.6 149 M
+(,my_rank\);) s
+402 141 M
+(    ) s
+/Courier-Oblique 7 7 SUF
+418.8 141 M
+(/* 2^stage = 1 << stage */) s
+/F-gs-font 7 7 SF
+402 133 M
+(    power_2_stage = 1 << stage;  ) s
+402 125 M
+(    ) s
+/Courier-Oblique 7 7 SUF
+418.8 125 M
+(//if \(my_rank > power_2_stage && my_rank < \(2*power_2_stage\) + 2\){) s
+/F-gs-font 7 7 SF
+402 117 M
+(    ) s
+/Courier-Bold 7 7 SUF
+418.8 117 M
+(if) s
+/F-gs-font 7 7 SF
+427.2 117 M
+(\(my_rank > \(p-1\) - power_2_stage\){) s
+402 109 M
+(        *dest_ptr = my_rank - power_2_stage;) s
+402 101 M
+(        ) s
+402 93 M
+(        printf\() s
+/Courier-Bold 7 7 SUF
+465 93 M
+("stage %d and my_rank %d\\n") s
+/F-gs-font 7 7 SF
+578.4 93 M
+(,stage,my_rank\);) s
+402 85 M
+(        ) s
+/Courier-Bold 7 7 SUF
+435.6 85 M
+(return) s
+/F-gs-font 7 7 SF
+460.8 85 M
+( 1;) s
+402 77 M
+(    } ) s
+/Courier-Bold 7 7 SUF
+427.2 77 M
+(else) s
+/F-gs-font 7 7 SF
+444 77 M
+( ) s
+/Courier-Bold 7 7 SUF
+448.2 77 M
+(return) s
+/F-gs-font 7 7 SF
+473.4 77 M
+( 0;) s
+402 69 M
+(} ) s
+/Courier-Oblique 7 7 SUF
+410.4 69 M
+(/* I_send */) s
+/F-gs-font 7 7 SF
+460.8 69 M
+(            ) s
+/Courier-Oblique 7 7 SUF
+402 61 M
+(/********************************************************************/) s
+/F-gs-font 7 7 SF
+/Courier-Bold 7 7 SUF
+402 53 M
+(void) s
+/F-gs-font 7 7 SF
+418.8 53 M
+( ) s
+/Courier-Bold 7 7 SUF
+423 53 M
+(Send) s
+/F-gs-font 7 7 SF
+439.8 53 M
+(\() s
+402 45 M
+(        ) s
+/Courier-Bold 7 7 SUF
+435.6 45 M
+(float) s
+/F-gs-font 7 7 SF
+456.6 45 M
+(  a     ) s
+/Courier-Oblique 7 7 SUF
+490.2 45 M
+(/* in */) s
+/F-gs-font 7 7 SF
+523.8 45 M
+(,) s
+402 37 M
+(        ) s
+/Courier-Bold 7 7 SUF
+435.6 37 M
+(float) s
+/F-gs-font 7 7 SF
+456.6 37 M
+(  b     ) s
+/Courier-Oblique 7 7 SUF
+490.2 37 M
+(/* in */) s
+/F-gs-font 7 7 SF
+523.8 37 M
+(, ) s
+402 29 M
+(        ) s
+/Courier-Bold 7 7 SUF
+435.6 29 M
+(int) s
+/F-gs-font 7 7 SF
+448.2 29 M
+(    n     ) s
+/Courier-Oblique 7 7 SUF
+490.2 29 M
+(/* in */) s
+/F-gs-font 7 7 SF
+523.8 29 M
+(, ) s
+402 21 M
+(        ) s
+/Courier-Bold 7 7 SUF
+435.6 21 M
+(int) s
+/F-gs-font 7 7 SF
+448.2 21 M
+(    dest  ) s
+/Courier-Oblique 7 7 SUF
+490.2 21 M
+(/* in */) s
+/F-gs-font 7 7 SF
+523.8 21 M
+(\) {) s
+402 5 M
+(    MPI_Send\(&a, 1, MPI_FLOAT, dest, 0, MPI_COMM_WORLD\);) s
+_R
+S
+%%Page: (3) 3
+%%BeginPageSetup
+_S
+90 rotate
+24 -571 translate
+/pagenum 3 def
+/fname (tree_based_broadcast.c) def
+/fdir (.) def
+/ftail (tree_based_broadcast.c) def
+% User defined strings:
+/pagenumstr (3) def
+/moddatestr (09/17/15) def
+/modtimestr (00:43:21) def
+/user_header_p false def
+/user_footer_p false def
+%%EndPageSetup
+column_lines
+do_header
+5 501 M
+(    MPI_Send\(&b, 1, MPI_FLOAT, dest, 1, MPI_COMM_WORLD\);) s
+5 493 M
+(    MPI_Send\(&n, 1, MPI_INT, dest, 2, MPI_COMM_WORLD\);) s
+5 485 M
+(    printf\() s
+/Courier-Bold 7 7 SUF
+51.2 485 M
+("inside send function : current process is sending to: %d\\n") s
+/F-gs-font 7 7 SF
+303.2 485 M
+(,dest\);) s
+5 477 M
+(} ) s
+/Courier-Oblique 7 7 SUF
+13.4 477 M
+(/* Send */) s
+/F-gs-font 7 7 SF
+5 469 M
+(    ) s
+/Courier-Oblique 7 7 SUF
+5 453 M
+(/********************************************************************/) s
+/F-gs-font 7 7 SF
+/Courier-Bold 7 7 SUF
+5 445 M
+(void) s
+/F-gs-font 7 7 SF
+21.8 445 M
+( ) s
+/Courier-Bold 7 7 SUF
+26 445 M
+(Receive) s
+/F-gs-font 7 7 SF
+55.4 445 M
+(\() s
+5 437 M
+(        ) s
+/Courier-Bold 7 7 SUF
+38.6 437 M
+(float) s
+/F-gs-font 7 7 SF
+59.6 437 M
+(*  a_ptr  ) s
+/Courier-Oblique 7 7 SUF
+101.6 437 M
+(/* out */) s
+/F-gs-font 7 7 SF
+139.4 437 M
+(, ) s
+5 429 M
+(        ) s
+/Courier-Bold 7 7 SUF
+38.6 429 M
+(float) s
+/F-gs-font 7 7 SF
+59.6 429 M
+(*  b_ptr  ) s
+/Courier-Oblique 7 7 SUF
+101.6 429 M
+(/* out */) s
+/F-gs-font 7 7 SF
+139.4 429 M
+(,) s
+5 421 M
+(        ) s
+/Courier-Bold 7 7 SUF
+38.6 421 M
+(int) s
+/F-gs-font 7 7 SF
+51.2 421 M
+(*    n_ptr  ) s
+/Courier-Oblique 7 7 SUF
+101.6 421 M
+(/* out */) s
+/F-gs-font 7 7 SF
+139.4 421 M
+(,) s
+5 413 M
+(        ) s
+/Courier-Bold 7 7 SUF
+38.6 413 M
+(int) s
+/F-gs-font 7 7 SF
+51.2 413 M
+(     source ) s
+/Courier-Oblique 7 7 SUF
+101.6 413 M
+(/* in  */) s
+/F-gs-font 7 7 SF
+139.4 413 M
+(\) {) s
+5 397 M
+(    MPI_Status status;) s
+5 389 M
+(    printf\() s
+/Courier-Bold 7 7 SUF
+51.2 389 M
+("source == %d\\n") s
+/F-gs-font 7 7 SF
+118.4 389 M
+(,source\);) s
+5 381 M
+(    MPI_Recv\(a_ptr, 1, MPI_FLOAT, source, 0, ) s
+5 373 M
+(        MPI_COMM_WORLD, &status\);) s
+5 365 M
+(    MPI_Recv\(b_ptr, 1, MPI_FLOAT, source, 1, ) s
+5 357 M
+(        MPI_COMM_WORLD, &status\);) s
+5 349 M
+(    MPI_Recv\(n_ptr, 1, MPI_INT, source, 2, ) s
+5 341 M
+(        MPI_COMM_WORLD, &status\);) s
+5 333 M
+(    printf\() s
+/Courier-Bold 7 7 SUF
+51.2 333 M
+("inside receive function : This process is receiving from : %d\\n") s
+/F-gs-font 7 7 SF
+324.2 333 M
+(,source\);) s
+5 309 M
+(} ) s
+/Courier-Oblique 7 7 SUF
+13.4 309 M
+(/* Receive */) s
+/F-gs-font 7 7 SF
+/Courier-Bold 7 7 SUF
+5 269 M
+(void) s
+/F-gs-font 7 7 SF
+21.8 269 M
+( ) s
+/Courier-Bold 7 7 SUF
+26 269 M
+(Get_data1) s
+/F-gs-font 7 7 SF
+63.8 269 M
+(\() s
+5 261 M
+(        ) s
+/Courier-Bold 7 7 SUF
+38.6 261 M
+(float) s
+/F-gs-font 7 7 SF
+59.6 261 M
+(*  a_ptr    ) s
+/Courier-Oblique 7 7 SUF
+110 261 M
+(/* out */) s
+/F-gs-font 7 7 SF
+147.8 261 M
+(,) s
+5 253 M
+(        ) s
+/Courier-Bold 7 7 SUF
+38.6 253 M
+(float) s
+/F-gs-font 7 7 SF
+59.6 253 M
+(*  b_ptr    ) s
+/Courier-Oblique 7 7 SUF
+110 253 M
+(/* out */) s
+/F-gs-font 7 7 SF
+147.8 253 M
+(,) s
+5 245 M
+(        ) s
+/Courier-Bold 7 7 SUF
+38.6 245 M
+(int) s
+/F-gs-font 7 7 SF
+51.2 245 M
+(*    n_ptr    ) s
+/Courier-Oblique 7 7 SUF
+110 245 M
+(/* out */) s
+/F-gs-font 7 7 SF
+147.8 245 M
+(,) s
+5 237 M
+(        ) s
+/Courier-Bold 7 7 SUF
+38.6 237 M
+(int) s
+/F-gs-font 7 7 SF
+51.2 237 M
+(     my_rank  ) s
+/Courier-Oblique 7 7 SUF
+110 237 M
+(/* in  */) s
+/F-gs-font 7 7 SF
+147.8 237 M
+(, ) s
+5 229 M
+(        ) s
+/Courier-Bold 7 7 SUF
+38.6 229 M
+(int) s
+/F-gs-font 7 7 SF
+51.2 229 M
+(     p        ) s
+/Courier-Oblique 7 7 SUF
+110 229 M
+(/* in  */) s
+/F-gs-font 7 7 SF
+147.8 229 M
+(\) {) s
+5 213 M
+(    ) s
+/Courier-Bold 7 7 SUF
+21.8 213 M
+(int) s
+/F-gs-font 7 7 SF
+34.4 213 M
+( source;) s
+5 205 M
+(    ) s
+/Courier-Bold 7 7 SUF
+21.8 205 M
+(int) s
+/F-gs-font 7 7 SF
+34.4 205 M
+( dest;) s
+5 197 M
+(    ) s
+/Courier-Bold 7 7 SUF
+21.8 197 M
+(int) s
+/F-gs-font 7 7 SF
+34.4 197 M
+( stage;) s
+5 181 M
+(    ) s
+/Courier-Bold 7 7 SUF
+21.8 181 M
+(int) s
+/F-gs-font 7 7 SF
+34.4 181 M
+( Ceiling_log2\() s
+/Courier-Bold 7 7 SUF
+93.2 181 M
+(int) s
+/F-gs-font 7 7 SF
+105.8 181 M
+(  x\);) s
+5 173 M
+(    ) s
+/Courier-Bold 7 7 SUF
+21.8 173 M
+(int) s
+/F-gs-font 7 7 SF
+34.4 173 M
+( I_receive\( ) s
+/Courier-Bold 7 7 SUF
+84.8 173 M
+(int) s
+/F-gs-font 7 7 SF
+97.4 173 M
+( stage, ) s
+/Courier-Bold 7 7 SUF
+131 173 M
+(int) s
+/F-gs-font 7 7 SF
+143.6 173 M
+( my_rank, ) s
+/Courier-Bold 7 7 SUF
+185.6 173 M
+(int) s
+/F-gs-font 7 7 SF
+198.2 173 M
+( p,) s
+/Courier-Bold 7 7 SUF
+210.8 173 M
+(int) s
+/F-gs-font 7 7 SF
+223.4 173 M
+(*  source_ptr\);) s
+5 165 M
+(    ) s
+/Courier-Bold 7 7 SUF
+21.8 165 M
+(int) s
+/F-gs-font 7 7 SF
+34.4 165 M
+( I_send\() s
+/Courier-Bold 7 7 SUF
+68 165 M
+(int) s
+/F-gs-font 7 7 SF
+80.6 165 M
+( stage, ) s
+/Courier-Bold 7 7 SUF
+114.2 165 M
+(int) s
+/F-gs-font 7 7 SF
+126.8 165 M
+( my_rank, ) s
+/Courier-Bold 7 7 SUF
+168.8 165 M
+(int) s
+/F-gs-font 7 7 SF
+181.4 165 M
+( p, ) s
+/Courier-Bold 7 7 SUF
+198.2 165 M
+(int) s
+/F-gs-font 7 7 SF
+210.8 165 M
+(* dest_ptr\);) s
+5 157 M
+(    ) s
+/Courier-Bold 7 7 SUF
+21.8 157 M
+(void) s
+/F-gs-font 7 7 SF
+38.6 157 M
+( Send\() s
+/Courier-Bold 7 7 SUF
+63.8 157 M
+(float) s
+/F-gs-font 7 7 SF
+84.8 157 M
+( a, ) s
+/Courier-Bold 7 7 SUF
+101.6 157 M
+(float) s
+/F-gs-font 7 7 SF
+122.6 157 M
+( b, ) s
+/Courier-Bold 7 7 SUF
+139.4 157 M
+(int) s
+/F-gs-font 7 7 SF
+152 157 M
+( n, ) s
+/Courier-Bold 7 7 SUF
+168.8 157 M
+(int) s
+/F-gs-font 7 7 SF
+181.4 157 M
+( dest\);) s
+5 149 M
+(    ) s
+/Courier-Bold 7 7 SUF
+21.8 149 M
+(void) s
+/F-gs-font 7 7 SF
+38.6 149 M
+( Receive\() s
+/Courier-Bold 7 7 SUF
+76.4 149 M
+(float) s
+/F-gs-font 7 7 SF
+97.4 149 M
+(* a_ptr, ) s
+/Courier-Bold 7 7 SUF
+135.2 149 M
+(float) s
+/F-gs-font 7 7 SF
+156.2 149 M
+(* b_ptr, ) s
+/Courier-Bold 7 7 SUF
+194 149 M
+(int) s
+/F-gs-font 7 7 SF
+206.6 149 M
+(* n_ptr, ) s
+/Courier-Bold 7 7 SUF
+244.4 149 M
+(int) s
+/F-gs-font 7 7 SF
+257 149 M
+( source\);) s
+5 133 M
+(    ) s
+/Courier-Bold 7 7 SUF
+21.8 133 M
+(if) s
+/F-gs-font 7 7 SF
+30.2 133 M
+( \(my_rank == 0\){) s
+5 125 M
+(        ) s
+/Courier-Oblique 7 7 SUF
+38.6 125 M
+(//printf\("Enter a, b, and n\\n"\);) s
+/F-gs-font 7 7 SF
+5 117 M
+(        *a_ptr = 0;) s
+5 109 M
+(        *b_ptr = 1;) s
+5 101 M
+(        *n_ptr = 1024;) s
+5 93 M
+(    } ) s
+/Courier-Bold 7 7 SUF
+5 85 M
+(for) s
+/F-gs-font 7 7 SF
+17.6 85 M
+( \(stage = 0; stage < Ceiling_log2\(p\); stage++\)) s
+5 77 M
+(        ) s
+/Courier-Bold 7 7 SUF
+38.6 77 M
+(if) s
+/F-gs-font 7 7 SF
+47 77 M
+( \(I_receive\(stage, my_rank, p, &source\)\)) s
+5 69 M
+(            Receive\(a_ptr, b_ptr, n_ptr, source\);) s
+5 61 M
+(        ) s
+/Courier-Bold 7 7 SUF
+38.6 61 M
+(else) s
+/F-gs-font 7 7 SF
+55.4 61 M
+( ) s
+/Courier-Bold 7 7 SUF
+59.6 61 M
+(if) s
+/F-gs-font 7 7 SF
+68 61 M
+( \(I_send\(stage, my_rank, p, &dest\)\)) s
+5 53 M
+(            Send\(*a_ptr, *b_ptr, *n_ptr, dest\);) s
+5 37 M
+(    ) s
+5 29 M
+(    ) s
+5 21 M
+(} ) s
+/Courier-Oblique 7 7 SUF
+13.4 21 M
+(/* Get_data1*/) s
+/F-gs-font 7 7 SF
+/Courier-Bold 7 7 SUF
+5 13 M
+(void) s
+/F-gs-font 7 7 SF
+21.8 13 M
+( ) s
+/Courier-Bold 7 7 SUF
+26 13 M
+(Get_data2) s
+/F-gs-font 7 7 SF
+63.8 13 M
+(\() s
+5 5 M
+(        ) s
+/Courier-Bold 7 7 SUF
+38.6 5 M
+(float) s
+/F-gs-font 7 7 SF
+59.6 5 M
+(*  a_ptr    ) s
+/Courier-Oblique 7 7 SUF
+110 5 M
+(/* out */) s
+/F-gs-font 7 7 SF
+147.8 5 M
+(,) s
+402 501 M
+(        ) s
+/Courier-Bold 7 7 SUF
+435.6 501 M
+(float) s
+/F-gs-font 7 7 SF
+456.6 501 M
+(*  b_ptr    ) s
+/Courier-Oblique 7 7 SUF
+507 501 M
+(/* out */) s
+/F-gs-font 7 7 SF
+544.8 501 M
+(,) s
+402 493 M
+(        ) s
+/Courier-Bold 7 7 SUF
+435.6 493 M
+(int) s
+/F-gs-font 7 7 SF
+448.2 493 M
+(*    n_ptr    ) s
+/Courier-Oblique 7 7 SUF
+507 493 M
+(/* out */) s
+/F-gs-font 7 7 SF
+544.8 493 M
+(,) s
+402 485 M
+(        ) s
+/Courier-Bold 7 7 SUF
+435.6 485 M
+(int) s
+/F-gs-font 7 7 SF
+448.2 485 M
+(     my_rank  ) s
+/Courier-Oblique 7 7 SUF
+507 485 M
+(/* in  */) s
+/F-gs-font 7 7 SF
+544.8 485 M
+(, ) s
+402 477 M
+(        ) s
+/Courier-Bold 7 7 SUF
+435.6 477 M
+(int) s
+/F-gs-font 7 7 SF
+448.2 477 M
+(     p        ) s
+/Courier-Oblique 7 7 SUF
+507 477 M
+(/* in  */) s
+/F-gs-font 7 7 SF
+544.8 477 M
+(\) {) s
+402 461 M
+(    ) s
+/Courier-Bold 7 7 SUF
+418.8 461 M
+(int) s
+/F-gs-font 7 7 SF
+431.4 461 M
+( source;) s
+402 453 M
+(    ) s
+/Courier-Bold 7 7 SUF
+418.8 453 M
+(int) s
+/F-gs-font 7 7 SF
+431.4 453 M
+( dest;) s
+402 445 M
+(    ) s
+/Courier-Bold 7 7 SUF
+418.8 445 M
+(int) s
+/F-gs-font 7 7 SF
+431.4 445 M
+( stage;) s
+402 429 M
+(    ) s
+/Courier-Bold 7 7 SUF
+418.8 429 M
+(int) s
+/F-gs-font 7 7 SF
+431.4 429 M
+( Ceiling_log2\() s
+/Courier-Bold 7 7 SUF
+490.2 429 M
+(int) s
+/F-gs-font 7 7 SF
+502.8 429 M
+(  x\);) s
+402 421 M
+(    ) s
+/Courier-Bold 7 7 SUF
+418.8 421 M
+(int) s
+/F-gs-font 7 7 SF
+431.4 421 M
+( I_receive1\( ) s
+/Courier-Bold 7 7 SUF
+486 421 M
+(int) s
+/F-gs-font 7 7 SF
+498.6 421 M
+( stage, ) s
+/Courier-Bold 7 7 SUF
+532.2 421 M
+(int) s
+/F-gs-font 7 7 SF
+544.8 421 M
+( my_rank, ) s
+/Courier-Bold 7 7 SUF
+586.8 421 M
+(int) s
+/F-gs-font 7 7 SF
+599.4 421 M
+( p,) s
+/Courier-Bold 7 7 SUF
+612 421 M
+(int) s
+/F-gs-font 7 7 SF
+624.6 421 M
+(*  source_ptr\);) s
+402 413 M
+(    ) s
+/Courier-Bold 7 7 SUF
+418.8 413 M
+(int) s
+/F-gs-font 7 7 SF
+431.4 413 M
+( I_send1\() s
+/Courier-Bold 7 7 SUF
+469.2 413 M
+(int) s
+/F-gs-font 7 7 SF
+481.8 413 M
+( stage, ) s
+/Courier-Bold 7 7 SUF
+515.4 413 M
+(int) s
+/F-gs-font 7 7 SF
+528 413 M
+( my_rank, ) s
+/Courier-Bold 7 7 SUF
+570 413 M
+(int) s
+/F-gs-font 7 7 SF
+582.6 413 M
+( p, ) s
+/Courier-Bold 7 7 SUF
+599.4 413 M
+(int) s
+/F-gs-font 7 7 SF
+612 413 M
+(* dest_ptr\);) s
+402 405 M
+(    ) s
+/Courier-Bold 7 7 SUF
+418.8 405 M
+(void) s
+/F-gs-font 7 7 SF
+435.6 405 M
+( Send\() s
+/Courier-Bold 7 7 SUF
+460.8 405 M
+(float) s
+/F-gs-font 7 7 SF
+481.8 405 M
+( a, ) s
+/Courier-Bold 7 7 SUF
+498.6 405 M
+(float) s
+/F-gs-font 7 7 SF
+519.6 405 M
+( b, ) s
+/Courier-Bold 7 7 SUF
+536.4 405 M
+(int) s
+/F-gs-font 7 7 SF
+549 405 M
+( n, ) s
+/Courier-Bold 7 7 SUF
+565.8 405 M
+(int) s
+/F-gs-font 7 7 SF
+578.4 405 M
+( dest\);) s
+402 397 M
+(    ) s
+/Courier-Bold 7 7 SUF
+418.8 397 M
+(void) s
+/F-gs-font 7 7 SF
+435.6 397 M
+( Receive\() s
+/Courier-Bold 7 7 SUF
+473.4 397 M
+(float) s
+/F-gs-font 7 7 SF
+494.4 397 M
+(* a_ptr, ) s
+/Courier-Bold 7 7 SUF
+532.2 397 M
+(float) s
+/F-gs-font 7 7 SF
+553.2 397 M
+(* b_ptr, ) s
+/Courier-Bold 7 7 SUF
+591 397 M
+(int) s
+/F-gs-font 7 7 SF
+603.6 397 M
+(* n_ptr, ) s
+/Courier-Bold 7 7 SUF
+641.4 397 M
+(int) s
+/F-gs-font 7 7 SF
+654 397 M
+( source\);) s
+402 389 M
+(    ) s
+/Courier-Bold 7 7 SUF
+418.8 389 M
+(if) s
+/F-gs-font 7 7 SF
+427.2 389 M
+( \(my_rank == p-1\) {) s
+402 381 M
+(        printf\() s
+/Courier-Bold 7 7 SUF
+465 381 M
+("Enter a, b, and n\\n") s
+/F-gs-font 7 7 SF
+553.2 381 M
+(\);) s
+402 373 M
+(        *a_ptr = 0;) s
+402 365 M
+(        *b_ptr = 1;) s
+402 357 M
+(        *n_ptr = 1024;) s
+402 349 M
+(    } ) s
+402 341 M
+(    printf\() s
+/Courier-Bold 7 7 SUF
+448.2 341 M
+("Ceiling_log2\(p\) : %d\\n") s
+/F-gs-font 7 7 SF
+549 341 M
+(, Ceiling_log2\(p\)\);) s
+402 333 M
+(    ) s
+/Courier-Bold 7 7 SUF
+418.8 333 M
+(for) s
+/F-gs-font 7 7 SF
+431.4 333 M
+( \(stage = 0; stage < Ceiling_log2\(p\); stage++\)) s
+402 325 M
+(        ) s
+/Courier-Bold 7 7 SUF
+435.6 325 M
+(if) s
+/F-gs-font 7 7 SF
+444 325 M
+( \(I_receive1\(stage, my_rank, p, &source\)\)) s
+402 317 M
+(            Receive\(a_ptr, b_ptr, n_ptr, source\);) s
+402 309 M
+(        ) s
+/Courier-Bold 7 7 SUF
+435.6 309 M
+(else) s
+/F-gs-font 7 7 SF
+452.4 309 M
+( ) s
+/Courier-Bold 7 7 SUF
+456.6 309 M
+(if) s
+/F-gs-font 7 7 SF
+465 309 M
+( \(I_send1\(stage, my_rank, p, &dest\)\)) s
+402 301 M
+(            Send\(*a_ptr, *b_ptr, *n_ptr, dest\);) s
+402 285 M
+(    ) s
+402 269 M
+(   ) s
+402 261 M
+(} ) s
+/Courier-Oblique 7 7 SUF
+410.4 261 M
+(/* Get_data2*/) s
+/F-gs-font 7 7 SF
+/Courier-Bold 7 7 SUF
+402 237 M
+(float) s
+/F-gs-font 7 7 SF
+423 237 M
+( ) s
+/Courier-Bold 7 7 SUF
+427.2 237 M
+(Trap) s
+/F-gs-font 7 7 SF
+444 237 M
+(\() s
+402 229 M
+(          ) s
+/Courier-Bold 7 7 SUF
+444 229 M
+(float) s
+/F-gs-font 7 7 SF
+465 229 M
+(  local_a   ) s
+/Courier-Oblique 7 7 SUF
+515.4 229 M
+(/* in */) s
+/F-gs-font 7 7 SF
+549 229 M
+(, ) s
+402 221 M
+(          ) s
+/Courier-Bold 7 7 SUF
+444 221 M
+(float) s
+/F-gs-font 7 7 SF
+465 221 M
+(  local_b   ) s
+/Courier-Oblique 7 7 SUF
+515.4 221 M
+(/* in */) s
+/F-gs-font 7 7 SF
+549 221 M
+(, ) s
+402 213 M
+(          ) s
+/Courier-Bold 7 7 SUF
+444 213 M
+(int) s
+/F-gs-font 7 7 SF
+456.6 213 M
+(    local_n   ) s
+/Courier-Oblique 7 7 SUF
+515.4 213 M
+(/* in */) s
+/F-gs-font 7 7 SF
+549 213 M
+(, ) s
+402 205 M
+(          ) s
+/Courier-Bold 7 7 SUF
+444 205 M
+(float) s
+/F-gs-font 7 7 SF
+465 205 M
+(  h         ) s
+/Courier-Oblique 7 7 SUF
+515.4 205 M
+(/* in */) s
+/F-gs-font 7 7 SF
+549 205 M
+(\) { ) s
+402 189 M
+(    ) s
+/Courier-Bold 7 7 SUF
+418.8 189 M
+(float) s
+/F-gs-font 7 7 SF
+439.8 189 M
+( integral;   ) s
+/Courier-Oblique 7 7 SUF
+494.4 189 M
+(/* Store result in integral  */) s
+/F-gs-font 7 7 SF
+624.6 189 M
+( ) s
+402 181 M
+(    ) s
+/Courier-Bold 7 7 SUF
+418.8 181 M
+(float) s
+/F-gs-font 7 7 SF
+439.8 181 M
+( x; ) s
+402 173 M
+(    ) s
+/Courier-Bold 7 7 SUF
+418.8 173 M
+(int) s
+/F-gs-font 7 7 SF
+431.4 173 M
+( i; ) s
+402 157 M
+(    ) s
+/Courier-Bold 7 7 SUF
+418.8 157 M
+(float) s
+/F-gs-font 7 7 SF
+439.8 157 M
+( f\() s
+/Courier-Bold 7 7 SUF
+452.4 157 M
+(float) s
+/F-gs-font 7 7 SF
+473.4 157 M
+( x\); ) s
+/Courier-Oblique 7 7 SUF
+494.4 157 M
+(/* function we're integrating */) s
+/F-gs-font 7 7 SF
+402 141 M
+(    integral = \(f\(local_a\) + f\(local_b\)\)/2.0; ) s
+402 133 M
+(    x = local_a; ) s
+402 125 M
+(    ) s
+/Courier-Bold 7 7 SUF
+418.8 125 M
+(for) s
+/F-gs-font 7 7 SF
+431.4 125 M
+( \(i = 1; i <= local_n-1; i++\) { ) s
+402 117 M
+(        x = x + h; ) s
+402 109 M
+(        integral = integral + f\(x\); ) s
+402 101 M
+(    } ) s
+402 93 M
+(    integral = integral*h; ) s
+402 85 M
+(    ) s
+/Courier-Bold 7 7 SUF
+418.8 85 M
+(return) s
+/F-gs-font 7 7 SF
+444 85 M
+( integral;) s
+402 77 M
+(} ) s
+/Courier-Oblique 7 7 SUF
+410.4 77 M
+(/*  Trap  */) s
+/F-gs-font 7 7 SF
+/Courier-Oblique 7 7 SUF
+402 53 M
+(/********************************************************************/) s
+/F-gs-font 7 7 SF
+/Courier-Bold 7 7 SUF
+402 45 M
+(float) s
+/F-gs-font 7 7 SF
+423 45 M
+( ) s
+/Courier-Bold 7 7 SUF
+427.2 45 M
+(f) s
+/F-gs-font 7 7 SF
+431.4 45 M
+(\() s
+/Courier-Bold 7 7 SUF
+435.6 45 M
+(float) s
+/F-gs-font 7 7 SF
+456.6 45 M
+( x\) { ) s
+402 37 M
+(    ) s
+/Courier-Bold 7 7 SUF
+418.8 37 M
+(float) s
+/F-gs-font 7 7 SF
+439.8 37 M
+( return_val; ) s
+402 29 M
+(    ) s
+402 21 M
+(    return_val = x*x;) s
+402 13 M
+(    ) s
+/Courier-Bold 7 7 SUF
+418.8 13 M
+(return) s
+/F-gs-font 7 7 SF
+444 13 M
+( return_val; ) s
+402 5 M
+(} ) s
+/Courier-Oblique 7 7 SUF
+410.4 5 M
+(/* f */) s
+/F-gs-font 7 7 SF
+_R
+S
+%%Page: (4) 4
+%%BeginPageSetup
+_S
+90 rotate
+24 -571 translate
+/pagenum 4 def
+/fname (tree_based_broadcast.c) def
+/fdir (.) def
+/ftail (tree_based_broadcast.c) def
+% User defined strings:
+/pagenumstr (4) def
+/moddatestr (09/17/15) def
+/modtimestr (00:43:21) def
+/user_header_p false def
+/user_footer_p false def
+%%EndPageSetup
+column_lines
+do_header
+_R
+S
+%%Trailer
+%%Pages: 4
+%%DocumentNeededResources: font Times-Roman Courier-Oblique Courier-Bold 
+%%+ font Courier Times-Bold 
+%%EOF
